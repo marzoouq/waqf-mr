@@ -124,6 +124,15 @@ export const generateDisclosurePDF = async (data: {
   beneficiariesShare: number;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
+  /** التسلسل المعتمد كما في الشاشة — قيم الخادم تمرّ كما هي */
+  waqfCorpusPrevious?: number;
+  grandTotal?: number;
+  netAfterExpenses?: number;
+  vatAmount?: number;
+  netAfterVat?: number;
+  zakatAmount?: number;
+  waqfRevenue?: number;
+  waqfCorpusManual?: number;
 }, waqfInfo?: PdfWaqfInfo) => {
   const { default: autoTable } = await import('jspdf-autotable');
   const { doc, fontFamily, startY } = await createPdfDocument(waqfInfo);
@@ -171,10 +180,7 @@ export const generateDisclosurePDF = async (data: {
     startY: y,
     head: [reshapeRow(['البند', 'المبلغ (ر.س)'])],
     body: [
-      reshapeRow(['صافي الريع', fmt(data.netRevenue)]),
-      reshapeRow([`(-) حصة الناظر (${data.adminPct ?? 10}%)`, `-${fmt(data.adminShare)}`]),
-      reshapeRow([`(-) حصة الواقف (${data.waqifPct ?? 5}%)`, `-${fmt(data.waqifShare)}`]),
-      reshapeRow(['صافي ريع المستفيدين', fmt(data.beneficiariesShare)]),
+      ...buildDisclosureSequenceRows(data).map(r => reshapeRow(r)),
       reshapeRow([{ content: rs('حصتي المستحقة'), styles: { fontStyle: 'bold' } }, { content: `${fmt(data.myShare)} ر.س`, styles: { fontStyle: 'bold' } }]),
     ],
     theme: 'grid',
@@ -184,4 +190,30 @@ export const generateDisclosurePDF = async (data: {
 
   stampAfterContent(doc, fontFamily, waqfInfo);
   finalizePdf(doc, fontFamily, `disclosure-${data.fiscalYear}.pdf`, waqfInfo);
+};
+
+/** التسلسل المالي للإفصاح بنفس ترتيب الشاشة: المصروفات والضريبة بندان مستقلان بلا دمج */
+export const buildDisclosureSequenceRows = (d: {
+  totalIncome: number; totalExpenses: number; netRevenue: number;
+  adminShare: number; waqifShare: number; adminPct?: number; waqifPct?: number; beneficiariesShare: number;
+  waqfCorpusPrevious?: number; grandTotal?: number; netAfterExpenses?: number; vatAmount?: number;
+  netAfterVat?: number; zakatAmount?: number; waqfRevenue?: number; waqfCorpusManual?: number;
+}): string[][] => {
+  const rows: string[][] = [['إجمالي الإيرادات', `+${fmt(d.totalIncome)}`]];
+  if ((d.waqfCorpusPrevious ?? 0) > 0) {
+    rows.push(['(+) رقبة الوقف المرحّلة من العام السابق', `+${fmt(d.waqfCorpusPrevious ?? 0)}`]);
+    if (d.grandTotal !== undefined) rows.push(['الإجمالي الشامل', fmt(d.grandTotal)]);
+  }
+  rows.push(['(-) المصروفات التشغيلية', `(${fmt(d.totalExpenses)})`]);
+  if (d.netAfterExpenses !== undefined) rows.push(['الصافي بعد المصاريف', fmt(d.netAfterExpenses)]);
+  if (d.vatAmount !== undefined) rows.push(['(-) ضريبة القيمة المضافة', `(${fmt(d.vatAmount)})`]);
+  if (d.netAfterVat !== undefined) rows.push(['الصافي بعد الضريبة', fmt(d.netAfterVat)]);
+  if ((d.zakatAmount ?? 0) > 0) rows.push(['(-) الزكاة', `(${fmt(d.zakatAmount ?? 0)})`]);
+  rows.push(['صافي الريع', fmt(d.netRevenue)]);
+  rows.push([`(-) حصة الناظر (${d.adminPct ?? 10}%)`, `(${fmt(d.adminShare)})`]);
+  rows.push([`(-) حصة الواقف (${d.waqifPct ?? 5}%)`, `(${fmt(d.waqifShare)})`]);
+  if (d.waqfRevenue !== undefined) rows.push(['ريع الوقف', fmt(d.waqfRevenue)]);
+  if ((d.waqfCorpusManual ?? 0) > 0) rows.push(['(-) رقبة الوقف للعام الحالي', `(${fmt(d.waqfCorpusManual ?? 0)})`]);
+  rows.push(['المتاح للتوزيع على المستفيدين', fmt(d.beneficiariesShare)]);
+  return rows;
 };

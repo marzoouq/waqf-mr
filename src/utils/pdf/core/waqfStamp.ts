@@ -36,7 +36,12 @@ const octagram = (doc: jsPDF, cx: number, cy: number, r: number) => {
   }
 };
 
+/** الوثائق التي رُسم عليها الختم — يمنع الختم المزدوج عند الختم التلقائي في finalizePdf */
+const stampedDocs = new WeakSet<object>();
+export const isDocStamped = (doc: jsPDF): boolean => stampedDocs.has(doc);
+
 export function drawWaqfStamp(doc: jsPDF, o: WaqfStampOptions): void {
+  stampedDocs.add(doc);
   const r = o.radius ?? 19;
   const k = r / 19;
   doc.saveGraphicsState();

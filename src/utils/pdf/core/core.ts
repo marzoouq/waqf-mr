@@ -24,6 +24,22 @@ export interface PdfWaqfInfo {
   adminName?: string;
 }
 
+/** اسم الوقف الرسمي — يُستخدم إن لم تصل الإعدادات بعد، فلا تصدر وثيقة بلا ترويسة */
+export const DEFAULT_WAQF_NAME = 'وقف مرزوق بن علي الثبيتي';
+let lastKnownWaqfInfo: PdfWaqfInfo | null = null;
+
+/** يحفظ آخر بيانات وقف محمّلة (من usePdfWaqfInfo) لاستخدامها احتياطياً */
+export const setDefaultPdfWaqfInfo = (info: PdfWaqfInfo): void => {
+  if (info.waqfName) lastKnownWaqfInfo = info;
+};
+
+/** يضمن وجود اسم الوقف دائماً: الممرَّر ← آخر محمّل ← الاسم الرسمي */
+export const resolvePdfWaqfInfo = (info?: PdfWaqfInfo): PdfWaqfInfo => {
+  if (info?.waqfName) return info;
+  const base = lastKnownWaqfInfo ?? { waqfName: DEFAULT_WAQF_NAME };
+  return { ...base, ...(info ?? {}), waqfName: base.waqfName };
+};
+
 // ═══ Factory Functions — توحيد إنشاء وإنهاء PDF ═══
 
 export interface PdfDocResult {
@@ -45,7 +61,7 @@ export const createPdfDocument = async (
   const doc = new JsPDF(options);
   const hasArabic = await loadArabicFont(doc);
   const fontFamily = hasArabic ? 'Amiri' : 'helvetica';
-  const startY = await addHeader(doc, fontFamily, waqfInfo);
+  const startY = await addHeader(doc, fontFamily, resolvePdfWaqfInfo(waqfInfo));
   return { doc, fontFamily, startY };
 };
 
@@ -59,6 +75,13 @@ export const finalizePdf = async (
   waqfInfo?: PdfWaqfInfo,
   options?: { skipHeaders?: boolean; skipOfficialMarks?: boolean; fiscalYearId?: string | null }
 ): Promise<import('./officialRegistry').IssuedDocumentRef | null> => {
+  waqfInfo = resolvePdfWaqfInfo(waqfInfo);
+  // ختم الوقف يُضاف تلقائياً لكل وثيقة لم تُختم بعد
+  const { isDocStamped } = await import('./waqfStamp');
+  if (!options?.skipOfficialMarks && !isDocStamped(doc)) {
+    const { stampAfterContent } = await import('./approvalStamp');
+    stampAfterContent(doc, fontFamily, waqfInfo);
+  }
   const { insertTableOfContents } = await import('./pdfLayout');
   // عند إدراج الفهرس تصبح صفحة الترويسة الكاملة هي الثانية
   const hasToc = insertTableOfContents(doc, fontFamily);

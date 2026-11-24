@@ -1,6 +1,6 @@
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { useAppSettings } from '@/hooks/data/settings/app/useAppSettings';
-import type { PdfWaqfInfo } from '@/utils/pdf/core/core';
+import { setDefaultPdfWaqfInfo, type PdfWaqfInfo } from '@/utils/pdf/core/core';
 
 export const usePdfWaqfInfo = (): PdfWaqfInfo => {
   const { data: waqfInfo } = useWaqfInfo();
@@ -14,7 +14,7 @@ export const usePdfWaqfInfo = (): PdfWaqfInfo => {
     settings?.business_address_postal_code,
   ].filter(Boolean);
 
-  return {
+  const info: PdfWaqfInfo = {
     waqfName: waqfInfo?.waqf_name || '',
     deedNumber: waqfInfo?.waqf_deed_number ? `صك رقم: ${waqfInfo.waqf_deed_number}` : undefined,
     court: waqfInfo?.waqf_court ? `المحكمة: ${waqfInfo.waqf_court}` : undefined,
@@ -27,4 +27,7 @@ export const usePdfWaqfInfo = (): PdfWaqfInfo => {
     bankAccount: settings?.waqf_bank_account || undefined,
     bankIBAN: settings?.waqf_bank_iban || undefined,
   };
+  // آخر بيانات محمّلة تُحفظ احتياطياً لأي تصدير لا يمرّرها
+  setDefaultPdfWaqfInfo(info);
+  return info;
 };

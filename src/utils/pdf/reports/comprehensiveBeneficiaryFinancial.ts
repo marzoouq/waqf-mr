@@ -22,10 +22,10 @@ function ensureSpace(doc: jsPDF, needed: number): number {
 }
 
 /** القسم الخامس: التسلسل المالي */
-/** السنوات غير المقفلة فقط: سطر المرحّل والإجمالي الشامل (السنة المقفلة تُطبع كما صدرت) */
+/** سطر المرحّل والإجمالي الشامل — مطابق لشاشة الإفصاح (يظهر متى كانت الرقبة المرحّلة موجبة) */
 export const buildCarryForwardRows = (data: ComprehensiveBeneficiaryData): string[][] => {
   const prev = data.waqfCorpusPrevious ?? 0;
-  if (!data.isFiscalYearActive || prev <= 0) return [];
+  if (prev <= 0) return [];
   const grand = data.grandTotal ?? data.totalIncome + prev;
   return [
     ['(+) رقبة الوقف المرحّلة من العام السابق', `+${fmt(prev)}`],

@@ -91,6 +91,9 @@ export const useDisclosurePage = () => {
         netRevenue: fin.netAfterZakat,
         adminShare: fin.adminShare, waqifShare: fin.waqifShare, adminPct, waqifPct, beneficiariesShare,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
+        waqfCorpusPrevious: fin.waqfCorpusPrevious, grandTotal: fin.grandTotal,
+        netAfterExpenses: fin.netAfterExpenses, vatAmount: fin.vatAmount, netAfterVat: fin.netAfterVat,
+        zakatAmount: fin.zakatAmount, waqfRevenue: fin.waqfRevenue, waqfCorpusManual: fin.waqfCorpusManual,
       }, pdfWaqfInfo);
       uiNotify.success(PDF_MESSAGES.downloadSuccess);
     } catch {
