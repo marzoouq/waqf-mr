@@ -4,12 +4,11 @@ import { lazy, Suspense } from 'react';
 
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { TrendingUp, Search, AlertTriangle } from 'lucide-react';
+import { TrendingUp, AlertTriangle } from 'lucide-react';
 import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { IncomeSummaryCards, IncomeMobileCards, IncomeDesktopTable, IncomeFormDialog } from '@/components/income';
 import { TablePagination, ExportMenu, TableSkeleton, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
-import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
+import RecordsToolbar from '@/components/dashboard/RecordsToolbar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useIncomePage } from '@/hooks/page/admin/financial/useIncomePage';
@@ -101,20 +100,20 @@ const IncomePage = () => {
         )}
 
         {/* بحث + فلاتر */}
-        <div className="space-y-3">
-          <div className="relative max-w-md">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="income-search" name="income-search" aria-label="بحث" placeholder="بحث في سجلات الدخل..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }} className="ps-10" />
-          </div>
-          <AdvancedFiltersBar
-            filters={filters}
-            onFiltersChange={(f) => { setFilters(f); setCurrentPage(1); }}
-            categories={uniqueSources}
-            categoryLabel="المصادر"
-            categoryPlaceholder="كل المصادر"
-            properties={properties}
-          />
-        </div>
+        <RecordsToolbar
+          searchId="income-search"
+          searchPlaceholder="بحث في سجلات الدخل..."
+          searchQuery={searchQuery}
+          onSearchChange={(v) => { setSearchQuery(v); setCurrentPage(1); }}
+          filtersProps={{
+            filters,
+            onFiltersChange: (f) => { setFilters(f); setCurrentPage(1); },
+            categories: uniqueSources,
+            categoryLabel: 'المصادر',
+            categoryPlaceholder: 'كل المصادر',
+            properties,
+          }}
+        />
 
         <Card className="shadow-sm">
           <CardContent className="p-0">

@@ -43,7 +43,7 @@ const PageHeaderCard = ({ title, description, icon: Icon, badge, actions, classN
         </div>
 
         {actions && (
-          <div className="flex min-w-0 flex-wrap items-center gap-2 [&_button]:border-primary-foreground/25 [&_button]:bg-primary-foreground/10 [&_button]:text-primary-foreground [&_button:hover]:bg-primary-foreground/20 [&_button.bg-primary]:border-sidebar-primary [&_button.bg-primary]:bg-sidebar-primary [&_button.bg-primary]:text-sidebar-primary-foreground [&_button.bg-primary]:font-bold [&_a]:text-primary-foreground">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 [&_button]:border-primary-foreground/25 [&_button]:bg-primary-foreground/10 [&_button]:text-primary-foreground [&_button:hover]:bg-primary-foreground/20 [&_button.bg-primary]:border-sidebar-primary [&_button.bg-primary]:bg-sidebar-primary [&_button.bg-primary]:text-sidebar-primary-foreground [&_button.bg-primary]:font-bold [&_button.gradient-primary]:bg-none [&_button.gradient-primary]:border-sidebar-primary [&_button.gradient-primary]:bg-sidebar-primary [&_button.gradient-primary]:text-sidebar-primary-foreground [&_button.gradient-primary]:font-bold [&_a]:text-primary-foreground">
             {actions}
           </div>
         )}

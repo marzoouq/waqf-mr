@@ -1,13 +1,12 @@
 import { ErrorState } from '@/components/common/feedback/PageStateGuards';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';
-import { TrendingDown, Search } from 'lucide-react';
+import { TrendingDown } from 'lucide-react';
 import { DOMAIN_ICONS } from '@/constants/domainIcons';
 import { ExpenseSummaryCards, ExpenseFormDialog, ExpensesPieChart, ExpenseBudgetBar, ExpensesMobileCards, ExpensesDesktopTable } from '@/components/expenses';
 import VoucherFormDialog from '@/components/expenses/vouchers/VoucherFormDialog';
-import AdvancedFiltersBar from '@/components/dashboard/AdvancedFiltersBar';
+import RecordsToolbar from '@/components/dashboard/RecordsToolbar';
 import { useIsMobile } from '@/hooks/ui/useIsMobile';
 import { useExpensesPage } from '@/hooks/page/admin/financial/useExpensesPage';
 
@@ -50,20 +49,20 @@ const ExpensesPage = () => {
         <ExpensesPieChart expenses={h.expenses} isLoading={h.isLoading} />
         <ExpenseBudgetBar expenses={h.expenses} fiscalYearId={h.fiscalYearId} isClosed={h.isLocked} />
 
-        <div className="space-y-3">
-          <div className="relative max-w-md">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="expenses-search" name="expenses-search" aria-label="بحث" placeholder="بحث في المصروفات..." value={h.searchQuery} onChange={(e) => { h.setSearchQuery(e.target.value); h.setCurrentPage(1); }} className="ps-10" />
-          </div>
-          <AdvancedFiltersBar
-            filters={h.filters}
-            onFiltersChange={(f) => { h.setFilters(f); h.setCurrentPage(1); }}
-            categories={h.uniqueTypes}
-            categoryLabel="الأنواع"
-            categoryPlaceholder="كل الأنواع"
-            properties={h.properties}
-          />
-        </div>
+        <RecordsToolbar
+          searchId="expenses-search"
+          searchPlaceholder="بحث في المصروفات..."
+          searchQuery={h.searchQuery}
+          onSearchChange={(v) => { h.setSearchQuery(v); h.setCurrentPage(1); }}
+          filtersProps={{
+            filters: h.filters,
+            onFiltersChange: (f) => { h.setFilters(f); h.setCurrentPage(1); },
+            categories: h.uniqueTypes,
+            categoryLabel: 'الأنواع',
+            categoryPlaceholder: 'كل الأنواع',
+            properties: h.properties,
+          }}
+        />
 
         <Card className="shadow-sm">
           <CardContent className="p-0">
