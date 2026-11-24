@@ -4,16 +4,20 @@
  */
 
 /**
- * أولوية الترويسات: x-forwarded-for (أول عنوان) ← cf-connecting-ip ← x-real-ip.
+ * أولوية الترويسات: cf-connecting-ip (يضعه الوكيل ولا يتحكم به الزائر)
+ * ← آخر عنوان في x-forwarded-for (أضافه الوكيل الموثوق) ← x-real-ip.
+ * أول عنوان في x-forwarded-for يكتبه الزائر بنفسه فلا يُعتمد عليه.
  * @param maxLen الحد الأقصى لطول العنوان المُعاد (حماية من ترويسات ضخمة).
  */
 export function extractClientIp(req: Request, maxLen = 64): string | null {
+  const cf = req.headers.get("cf-connecting-ip")?.trim();
+  if (cf) return cf.substring(0, maxLen);
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
-    const first = forwarded.split(",")[0]?.trim();
-    if (first) return first.substring(0, maxLen);
+    const parts = forwarded.split(",").map((s) => s.trim()).filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last) return last.substring(0, maxLen);
   }
-  const fallback = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip");
-  const trimmed = fallback?.trim();
-  return trimmed ? trimmed.substring(0, maxLen) : null;
+  const real = req.headers.get("x-real-ip")?.trim();
+  return real ? real.substring(0, maxLen) : null;
 }

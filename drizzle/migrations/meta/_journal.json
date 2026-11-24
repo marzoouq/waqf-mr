@@ -267,6 +267,13 @@
       "when": 1795555316457,
       "tag": "0037_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795556504757,
+      "tag": "0038_block_self_dealing_and_validate_shares",
+      "breakpoints": true
     }
   ]
 }

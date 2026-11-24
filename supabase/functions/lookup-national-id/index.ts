@@ -13,6 +13,7 @@
  * `verify_jwt = false` و `anonKey` مقصودان — هذا endpoint عام بالتصميم.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { extractClientIp } from "../_shared/client-ip.ts";
 import { z } from "npm:zod@3";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import {
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
     });
 
     // ── Layer 1: per-IP rate limit ──
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const clientIp = extractClientIp(req) || "unknown";
     const rateLimitKey = `lookup_nid:${clientIp}`;
 
     const { data: isLimited, error: rlError } = await rlClient.rpc('check_rate_limit', {

@@ -5,20 +5,20 @@ import { extractClientIp } from "./client-ip.ts";
 const reqWith = (headers: Record<string, string>) =>
   new Request("https://example.test/", { headers });
 
-Deno.test("يأخذ أول عنوان من x-forwarded-for", () => {
+Deno.test("يتجاهل العنوان الذي يكتبه الزائر ويأخذ آخر عنوان في x-forwarded-for", () => {
   assertEquals(
     extractClientIp(reqWith({ "x-forwarded-for": "203.0.113.5, 10.0.0.1, 10.0.0.2" })),
-    "203.0.113.5",
+    "10.0.0.2",
   );
 });
 
-Deno.test("x-forwarded-for له أولوية على cf-connecting-ip", () => {
+Deno.test("cf-connecting-ip له أولوية على x-forwarded-for المزوّر", () => {
   assertEquals(
     extractClientIp(reqWith({
       "x-forwarded-for": "203.0.113.5",
       "cf-connecting-ip": "198.51.100.9",
     })),
-    "203.0.113.5",
+    "198.51.100.9",
   );
 });
 
