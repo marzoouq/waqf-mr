@@ -11,18 +11,8 @@ import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { useAppSettings, useWaqfInfo, useSetting } from '@/hooks/data/settings/app/useAppSettings';
 import { usePublicStats } from '@/hooks/data/content/usePublicStats';
 import type { LandingPageContent } from '@/types/landing';
+import { LANDING_DEFAULTS, withLandingDefaults } from '@/constants/landingDefaults';
 
-const defaultLanding: LandingPageContent = {
-  hero_title: 'نظام إدارة الوقف',
-  hero_subtitle: 'منصة متكاملة لإدارة أملاك الوقف وتوزيع الريع على المستفيدين',
-  hero_tagline: 'حفظ الأمانة · إدارة الممتلكات · توزيع عادل',
-  cta_text: 'دخول النظام',
-  features_title: 'مميزات النظام',
-  features_subtitle: 'أدوات شاملة لإدارة الوقف بكفاءة وشفافية تامة',
-  cta_section_title: 'ابدأ بإدارة وقفك بكفاءة اليوم',
-  cta_section_subtitle: 'سجّل دخولك للوصول إلى لوحة التحكم وإدارة جميع جوانب الوقف',
-  footer_text: 'نظام إدارة الوقف © {year} — جميع الحقوق محفوظة',
-};
 
 /** تهريب JSON-LD ضد XSS — JSON.stringify لا يهرّب </script> */
 function safeJsonLdString(obj: unknown): string {
@@ -36,7 +26,11 @@ export function useLandingPage() {
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
   const { getJsonSetting } = useAppSettings();
-  const content = getJsonSetting<LandingPageContent>('landing_page_content', defaultLanding);
+  const saved = getJsonSetting<Partial<LandingPageContent>>('landing_page_content', LANDING_DEFAULTS);
+  // تثبيت المرجع حتى لا يُعاد ضبط النموذج في كل رسم
+  const savedKey = JSON.stringify(saved);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const content = useMemo(() => withLandingDefaults(saved), [savedKey]);
   const { data: waqfInfo } = useWaqfInfo();
   const landingLogoUrl = useSetting('landing_logo_url');
   const { stats, statsLoading } = usePublicStats();
@@ -55,6 +49,7 @@ export function useLandingPage() {
   }, [user, role, loading, navigate]);
 
   const handleNavigateAuth = useCallback(() => navigate('/auth'), [navigate]);
+  const handleVerify = useCallback((code: string) => navigate(`/verify/document/${encodeURIComponent(code)}`), [navigate]);
 
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const waqfName = waqfInfo?.waqf_name ?? 'نظام إدارة الوقف';
@@ -83,15 +78,24 @@ export function useLandingPage() {
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'SAR' },
   }), [waqfName, siteUrl]);
 
+  const navLinks = useMemo(() => [
+    content.show_testament && { href: '#testament', label: content.testament_title },
+    content.show_pillars && { href: '#pillars', label: content.features_title },
+    content.show_verify && { href: '#verify', label: content.verify_title },
+  ].filter((l): l is { href: string; label: string } => Boolean(l)), [content]);
+
   // المستخدم المسجّل سيُعاد توجيهه — إشارة لرندر loader فقط
   const shouldShowRedirectLoader = !loading && !!user;
 
   return {
     content,
     waqfLogoUrl: landingLogoUrl || waqfInfo?.waqf_logo_url,
-    stats,
+    stats: content.show_stats ? stats : [],
     statsLoading,
     handleNavigateAuth,
+    handleVerify,
+    waqfName,
+    navLinks,
     orgJsonLd,
     webAppJsonLd,
     shouldShowRedirectLoader,

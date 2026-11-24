@@ -19,7 +19,7 @@ interface LandingHeroProps {
 }
 
 const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, statsLoading, onNavigateAuth }) => (
-  <header className="relative overflow-hidden gradient-hero min-h-[100svh] md:min-h-[90vh] flex items-center" role="banner">
+  <header className="relative overflow-hidden gradient-hero min-h-[85svh] md:min-h-[80vh] flex items-center" role="banner">
     <div className="absolute inset-0 opacity-[0.07]" aria-hidden="true">
       <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
         <defs>
@@ -72,7 +72,7 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
             {content.cta_text}
           </Button>
         </div>
-        <div className="mt-10 md:mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        {stats.length > 0 && (<div className="mt-10 md:mt-16 flex justify-center gap-8 md:gap-16 animate-fade-in" style={{ animationDelay: '500ms' }}>
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               {statsLoading ? (
@@ -83,13 +83,13 @@ const LandingHero: React.FC<LandingHeroProps> = ({ content, waqfLogoUrl, stats, 
               <div className="text-sm text-white/70 mt-1">{stat.label}</div>
             </div>
           ))}
-        </div>
+        </div>)}
       </div>
     </div>
     <button
       className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce cursor-pointer bg-transparent border-0"
-      aria-label="انتقل لقسم الميزات"
-      onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+      aria-label="انتقل للمحتوى"
+      onClick={() => document.getElementById('testament') ?? document.getElementById('pillars')?.scrollIntoView({ behavior: 'smooth' })}
     >
       <ChevronDown className="w-6 h-6 text-white" />
     </button>

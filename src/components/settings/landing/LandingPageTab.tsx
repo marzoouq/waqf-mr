@@ -1,22 +1,53 @@
 /**
  * تبويب إعدادات الواجهة الرئيسية — presentational
+ * الناظر يحرر نصوص كل قسم ويتحكم بظهوره.
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Save, Globe } from 'lucide-react';
+import { Save, Globe, Eye } from 'lucide-react';
 import LogoUploadCard from './LogoUploadCard';
 import LandingStatsSettings from './LandingStatsSettings';
+import LandingTextField from './LandingTextField';
 import { useLandingPageTab } from '@/hooks/page/admin/settings/useLandingPageTab';
-import type { LandingPageContent } from '@/types/landing';
+import type { LandingPageContent, LandingTextKey, LandingToggleKey } from '@/types/landing';
 
 // إعادة تصدير للتوافق العكسي مع المستوردين القدامى
 export type { LandingPageContent };
 
+type FieldDef = { field: LandingTextKey; label: string; max: number; multiline?: boolean; placeholder?: string };
+
+const SECTIONS: { title: string; toggle?: LandingToggleKey; fields: FieldDef[] }[] = [
+  { title: 'الواجهة الرئيسية', fields: [
+    { field: 'hero_title', label: 'العنوان الرئيسي', max: 100 },
+    { field: 'hero_subtitle', label: 'الوصف', max: 300, multiline: true },
+    { field: 'hero_tagline', label: 'الشعار النصي', max: 100 },
+    { field: 'cta_text', label: 'نص زر الدخول', max: 50 },
+  ] },
+  { title: 'ميثاق الوقف', toggle: 'show_testament', fields: [
+    { field: 'testament_title', label: 'العنوان', max: 100 },
+    { field: 'testament_text', label: 'نص الميثاق', max: 800, multiline: true },
+  ] },
+  { title: 'ركائز الحوكمة', toggle: 'show_pillars', fields: [
+    { field: 'features_title', label: 'العنوان', max: 100 },
+    { field: 'features_subtitle', label: 'الوصف', max: 200 },
+  ] },
+  { title: 'التحقق من الوثائق', toggle: 'show_verify', fields: [
+    { field: 'verify_title', label: 'العنوان', max: 100 },
+    { field: 'verify_subtitle', label: 'الوصف', max: 200 },
+  ] },
+  { title: 'بوابة الدخول', toggle: 'show_cta', fields: [
+    { field: 'cta_section_title', label: 'العنوان', max: 100 },
+    { field: 'cta_section_subtitle', label: 'الوصف', max: 200 },
+  ] },
+  { title: 'التذييل', fields: [
+    { field: 'footer_text', label: 'نص التذييل', max: 200, placeholder: 'استخدم {year} لإدراج السنة تلقائياً' },
+  ] },
+];
+
 const LandingPageTab = () => {
-  const { form, handleChange, handleSave, landingLogoUrl, isLoading } = useLandingPageTab();
+  const { form, handleChange, handleToggle, handleSave, landingLogoUrl, isLoading } = useLandingPageTab();
 
   if (isLoading) return <div className="p-4 text-center text-muted-foreground">جارٍ التحميل...</div>;
 
@@ -29,68 +60,37 @@ const LandingPageTab = () => {
         storagePath="landing-logo"
         currentUrl={landingLogoUrl}
       />
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg flex items-center gap-2">
-            <Globe className="w-5 h-5" />
-            القسم الرئيسي (Hero)
-          </CardTitle>
-          <CardDescription>تعديل العنوان والوصف في أعلى الصفحة الرئيسية</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-1">العنوان الرئيسي</Label>
-            <Input name="hero_title" id="landing-page-tab-field-1" value={form.hero_title} onChange={e => handleChange('hero_title', e.target.value)} maxLength={100} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-2">الوصف</Label>
-            <Textarea id="landing-page-tab-field-2" value={form.hero_subtitle} onChange={e => handleChange('hero_subtitle', e.target.value)} maxLength={300} rows={2} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-3">الشعار النصي</Label>
-            <Input name="hero_tagline" id="landing-page-tab-field-3" value={form.hero_tagline} onChange={e => handleChange('hero_tagline', e.target.value)} maxLength={100} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-4">نص زر الدخول</Label>
-            <Input name="cta_text" id="landing-page-tab-field-4" value={form.cta_text} onChange={e => handleChange('cta_text', e.target.value)} maxLength={50} />
-          </div>
-        </CardContent>
-      </Card>
+
+      {SECTIONS.map(section => (
+        <Card key={section.title}>
+          <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+            <CardTitle className="font-display text-lg flex items-center gap-2">
+              <Globe className="w-5 h-5" />
+              {section.title}
+            </CardTitle>
+            {section.toggle && (
+              <div className="flex items-center gap-2">
+                <Label htmlFor={`toggle-${section.toggle}`} className="text-sm">إظهار للزوار</Label>
+                <Switch id={`toggle-${section.toggle}`} checked={form[section.toggle]} onCheckedChange={v => handleToggle(section.toggle!, v)} />
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {section.fields.map(f => (
+              <LandingTextField key={f.field} field={f.field} label={f.label} form={form} onChange={handleChange} maxLength={f.max} multiline={f.multiline} placeholder={f.placeholder} />
+            ))}
+          </CardContent>
+        </Card>
+      ))}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg">قسم المميزات</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
+          <div>
+            <CardTitle className="font-display text-lg flex items-center gap-2"><Eye className="w-5 h-5" />أرقام الوقف للزوار</CardTitle>
+            <CardDescription className="mt-1">مخفية افتراضياً حفاظاً على خصوصية الوقف ومستحقيه</CardDescription>
+          </div>
+          <Switch id="toggle-show_stats" aria-label="إظهار أرقام الوقف" checked={form.show_stats} onCheckedChange={v => handleToggle('show_stats', v)} />
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-5">عنوان القسم</Label>
-            <Input name="features_title" id="landing-page-tab-field-5" value={form.features_title} onChange={e => handleChange('features_title', e.target.value)} maxLength={100} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-6">وصف القسم</Label>
-            <Input name="features_subtitle" id="landing-page-tab-field-6" value={form.features_subtitle} onChange={e => handleChange('features_subtitle', e.target.value)} maxLength={200} />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-display text-lg">قسم الدعوة للعمل والتذييل</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-7">عنوان الدعوة</Label>
-            <Input name="cta_section_title" id="landing-page-tab-field-7" value={form.cta_section_title} onChange={e => handleChange('cta_section_title', e.target.value)} maxLength={100} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-8">وصف الدعوة</Label>
-            <Input name="cta_section_subtitle" id="landing-page-tab-field-8" value={form.cta_section_subtitle} onChange={e => handleChange('cta_section_subtitle', e.target.value)} maxLength={200} />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="landing-page-tab-field-9">نص التذييل</Label>
-            <Input name="footer_text" id="landing-page-tab-field-9" value={form.footer_text} onChange={e => handleChange('footer_text', e.target.value)} maxLength={200} placeholder="استخدم {year} لإدراج السنة تلقائياً" />
-          </div>
-        </CardContent>
       </Card>
 
       <Button onClick={handleSave} className="gap-2">
@@ -98,7 +98,7 @@ const LandingPageTab = () => {
         حفظ محتوى الواجهة الرئيسية
       </Button>
 
-      <LandingStatsSettings />
+      {form.show_stats && <LandingStatsSettings />}
     </div>
   );
 };
