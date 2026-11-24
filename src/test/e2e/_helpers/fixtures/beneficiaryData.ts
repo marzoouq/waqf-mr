@@ -43,7 +43,7 @@ export const disclosureFixture: DisclosureReturn = {
   totalReceived: 50_000,
   pendingAmount: 41_700,
   gregorianFiscalYear: '2024-2025',
-  contracts: [],
+  contractsSummary: { total: 0, active: 0, expired: 0, cancelled: 0, annualValue: 0 },
   handleDownloadPDF: () => Promise.resolve(),
   handleDownloadComprehensivePDF: () => Promise.resolve(),
 };

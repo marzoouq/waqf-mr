@@ -7,6 +7,7 @@ import {
 } from '../core/core';
 import { getPdfThemeColors } from '../core/themeColors';
 import { fmt } from '@/utils/format/format';
+import type { DisclosureContractsSummary } from '@/utils/contracts/disclosureContractsSummary';
 import {
   renderContractsTable,
   renderIncomeTable,
@@ -42,13 +43,8 @@ export interface ComprehensiveBeneficiaryData {
   pendingAmount: number;
   incomeBySource: Record<string, number>;
   expensesByType: Record<string, number>;
-  contracts: Array<{
-    contract_number: string;
-    tenant_name: string;
-    rent_amount: number;
-    status: string;
-    end_date?: string | null;
-  }>;
+  /** ملخص العقود التشغيلية فقط — لا أسماء مستأجرين ولا أرقام عقود في الإفصاح */
+  contractsSummary: DisclosureContractsSummary;
   distributions: Array<{
     date: string;
     fiscalYear: string;

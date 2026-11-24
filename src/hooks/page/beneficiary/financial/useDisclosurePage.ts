@@ -3,7 +3,7 @@
  * محسّن: يستخدم useEndUserFinancials المشترك + useCallback للـ PDF
  * #13 — نسب الحصص من RPC | #21 — lazy fetch للعقود
  */
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRetryQueries } from '@/hooks/data/core/useRetryQueries';
 import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { useFiscalYear } from '@/contexts/FiscalYearContext';
@@ -19,6 +19,7 @@ import { filterDistributionsByFiscalYear, summarizeDistributions } from '@/utils
 import { toGregorianShort } from '@/utils/format/date';
 import { isFyReady } from '@/constants/fiscalYearIds';
 import { PDF_MESSAGES } from '@/lib/messages';
+import { summarizeDisclosureContracts } from '@/utils/contracts/disclosureContractsSummary';
 
 
 export const useDisclosurePage = () => {
@@ -56,6 +57,8 @@ export const useDisclosurePage = () => {
 
   // العقود مطلوبة لـ DisclosureContractsSection في الـ UI
   const { data: contracts = [], isLoading: contractsLoading } = useContractsSafeByFiscalYear(fiscalYearId);
+  // ملخص تشغيلي فقط للإفصاح (التفاصيل في صفحة العقود)
+  const contractsSummary = useMemo(() => summarizeDisclosureContracts(contracts), [contracts]);
 
   const fiscalYear = selectedFY?.label || '';
   const gregorianFiscalYear = selectedFY
@@ -109,13 +112,7 @@ export const useDisclosurePage = () => {
         waqfRevenue: fin.waqfRevenue, waqfCorpusManual: fin.waqfCorpusManual,
         availableAmount: beneficiariesShare, myShare, totalReceived, pendingAmount,
         incomeBySource: fin.incomeBySource, expensesByType: fin.expensesByTypeExcludingVat,
-        contracts: contracts.map(c => ({
-          contract_number: c.contract_number ?? '',
-          tenant_name: c.tenant_name ?? '',
-          rent_amount: safeNumber(c.rent_amount),
-          status: c.status ?? '',
-          end_date: c.end_date ?? null,
-        })),
+        contractsSummary,
         distributions: filteredDistributions.map(d => ({
           date: d.date,
           fiscalYear: d.account?.fiscal_year || '-',
@@ -127,13 +124,13 @@ export const useDisclosurePage = () => {
     } catch {
       uiNotify.error('حدث خطأ أثناء تصدير التقرير الشامل');
     }
-  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contracts, filteredDistributions, pdfWaqfInfo, selectedFY?.status]);
+  }, [currentBeneficiary, gregorianFiscalYear, fin, adminPct, waqifPct, beneficiariesShare, myShare, totalReceived, pendingAmount, contractsSummary, filteredDistributions, pdfWaqfInfo, selectedFY?.status]);
 
   return {
     // توحيد loading states (#37) — يشمل distLoading لمنع الـ flickering
     isLoading: finLoading || pctLoading || contractsLoading || distLoading,
     isError: finError, isAccountMissing: fin.isAccountMissing,
-    selectedFY, handleRetry, contracts,
+    selectedFY, handleRetry, contractsSummary,
     totalIncome: fin.totalIncome, totalExpenses: fin.totalExpenses,
     vatAmount: fin.vatAmount, zakatAmount: fin.zakatAmount, waqfCorpusManual: fin.waqfCorpusManual,
     waqfCorpusPrevious: fin.waqfCorpusPrevious, grandTotal: fin.grandTotal,

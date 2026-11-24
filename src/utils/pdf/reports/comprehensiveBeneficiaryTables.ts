@@ -1,4 +1,3 @@
-import { getEffectiveContractStatus } from '@/utils/contracts/contractStatus';
 import { startSectionPage } from '@/utils/pdf/core/pdfLayout';
 /**
  * دوال بناء جداول التقرير الشامل للمستفيد — مستخرجة لتقليل حجم الملف الرئيسي
@@ -27,32 +26,27 @@ const ensureSpace = (doc: jsPDF, needed: number): number => {
   return startSectionPage(doc, 25, getLastAutoTableY(doc) + 10);
 };
 
-/** القسم الثاني: العقود */
+/** القسم الثاني: ملخص العقود التشغيلية — إجماليات فقط، والتفاصيل في صفحة العقود */
 export const renderContractsTable = (
   doc: jsPDF, autoTable: AutoTableFn, f: string, data: ComprehensiveBeneficiaryData, _waqfInfo?: PdfWaqfInfo,
 ) => {
   const y = ensureSpace(doc, 40);
   doc.setFont(f, 'bold');
   doc.setFontSize(14);
-  doc.text(rs('ثانياً: العقود'), 192, y, { align: 'right' });
+  doc.text(rs('ثانياً: ملخص العقود التشغيلية'), 192, y, { align: 'right' });
 
-  if (data.contracts.length > 0) {
+  const s = data.contractsSummary;
+  if (s.total > 0) {
     autoTable(doc, {
       startY: y + 6,
-      head: [reshapeRow(['رقم العقد', 'المستأجر', 'الإيجار السنوي', 'الإيجار الشهري', 'الحالة'])],
-      body: data.contracts.map(c => reshapeRow([
-        c.contract_number,
-        c.tenant_name,
-        fmt(Number(c.rent_amount)),
-        fmtInt(Math.round(Number(c.rent_amount) / 12)),
-        ((st) => st === 'active' ? 'نشط' : st === 'expired' ? 'منتهي' : st)(getEffectiveContractStatus(c.status, c.end_date)),
-      ])),
-      foot: [reshapeRow([
-        'الإجمالي', '',
-        fmt(data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0)),
-        fmtInt(Math.round(data.contracts.reduce((s, c) => s + Number(c.rent_amount), 0) / 12)),
-        '',
-      ])],
+      head: [reshapeRow(['البند', 'القيمة'])],
+      body: [
+        reshapeRow(['عدد العقود', fmtInt(s.total)]),
+        reshapeRow(['عقود نشطة', fmtInt(s.active)]),
+        reshapeRow(['عقود منتهية', fmtInt(s.expired)]),
+        ...(s.cancelled > 0 ? [reshapeRow(['عقود ملغاة', fmtInt(s.cancelled)])] : []),
+      ],
+      foot: [reshapeRow(['إجمالي القيمة السنوية للعقود (ر.س)', fmt(s.annualValue)])],
       theme: 'striped',
       ...headStyles(TABLE_HEAD_GREEN, f),
       ...footStyles(TABLE_HEAD_GREEN, f),
@@ -99,7 +93,7 @@ export const renderExpensesTable = (
     startY: y + 6,
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
     body: Object.entries(data.expensesByType).map(([t, a]) => reshapeRow([t, `-${fmt(a)}`])),
-    foot: [reshapeRow(['إجمالي المصروفات', `-${fmt(data.totalExpenses)}`])],
+    foot: [reshapeRow(['إجمالي المصروفات التشغيلية', `-${fmt(data.totalExpenses)}`])],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, f),
     ...footStyles(TABLE_HEAD_RED, f),

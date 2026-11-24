@@ -20,7 +20,7 @@ const DisclosurePage = () => {
     adminShare, waqifShare, adminPct, waqifPct, beneficiariesShare,
     incomeBySource, expensesByTypeExcludingVat,
     currentBeneficiary, myShare, totalReceived, pendingAmount, gregorianFiscalYear,
-    contracts,
+    contractsSummary,
     handleDownloadPDF, handleDownloadComprehensivePDF,
   } = useDisclosurePage();
 
@@ -80,6 +80,7 @@ const DisclosurePage = () => {
           <DisclosureSummaryCards
             totalIncome={totalIncome}
             totalExpenses={totalExpenses}
+            vatAmount={vatAmount}
             myShare={myShare}
             totalReceived={totalReceived}
             pendingAmount={pendingAmount}
@@ -97,7 +98,7 @@ const DisclosurePage = () => {
             <FiscalYearStateNotice state="active" />
           )}
 
-          <DisclosureContractsSection contracts={contracts} isLoading={isLoading} isClosed={selectedFY?.status === 'closed'} />
+          <DisclosureContractsSection summary={contractsSummary} isLoading={isLoading} />
 
           <DisclosureFinancialStatement
             incomeBySource={incomeBySource}

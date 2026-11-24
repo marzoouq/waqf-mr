@@ -15,6 +15,7 @@ import { usePdfWaqfInfo } from '@/hooks/data/settings/waqf/usePdfWaqfInfo';
 import { uiNotify } from '@/lib/notify';
 import { printShareReport } from '@/utils/export/printShareReport';
 import { PDF_MESSAGES } from '@/lib/messages';
+import { summarizeDisclosureContracts } from '@/utils/contracts/disclosureContractsSummary';
 
 interface PdfHandlersParams {
   currentBeneficiary: { name: string | null; share_percentage: number | null } | null;
@@ -137,10 +138,7 @@ export const useMySharePdfHandlers = (params: PdfHandlersParams) => {
         availableAmount: params.beneficiariesShare, myShare: params.myShare,
         totalReceived: params.totalReceived, pendingAmount: params.pendingAmount,
         incomeBySource: params.incomeBySource, expensesByType: params.expensesByTypeExcludingVat,
-        contracts: contractsData.map(c => ({
-          contract_number: c.contract_number ?? '', tenant_name: c.tenant_name ?? '',
-          rent_amount: Number(c.rent_amount), status: c.status ?? '',
-        })),
+        contractsSummary: summarizeDisclosureContracts(contractsData),
         distributions: params.filteredDistributions.map(d => ({
           date: d.date, fiscalYear: d.account?.fiscal_year || '-',
           amount: Number(d.amount), status: d.status,

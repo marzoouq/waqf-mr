@@ -23,11 +23,11 @@ describe('السنة المقفلة مجمّدة والتصحيحات للسنو
     expect(rows[1]?.[1]).toContain('1,864,813.2');
   });
 
-  it('لا يُطبع إجمالي مدمج للمصروفات والضريبة في السنوات المفتوحة', () => {
+  it('لا يُطبع إجمالي مدمج للمصروفات والضريبة في أي سنة (مقفلة أو مفتوحة)', () => {
     const src = readFileSync('src/components/beneficiary/disclosure/DisclosureExpensesBlock.tsx', 'utf8');
-    const openBranch = src.slice(src.indexOf(') : ('));
-    expect(openBranch).not.toContain('إجمالي المصروفات والضريبة');
-    expect(openBranch).not.toContain('totalExpenses - vatAmount');
+    expect(src).not.toContain('إجمالي المصروفات والضريبة');
+    expect(src).not.toContain('totalExpenses - vatAmount');
+    expect(src).not.toContain('isClosed');
   });
 
   it('المهمة الليلية لا تكتب في السنة المقفلة', () => {

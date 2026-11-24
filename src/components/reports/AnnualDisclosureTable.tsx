@@ -108,7 +108,7 @@ const AnnualDisclosureTable = ({
                 </tr>
               ))}
               <tr className="border-b-2 border-destructive bg-destructive/10">
-                <td className="py-3 px-4 font-bold">إجمالي المصروفات</td>
+                <td className="py-3 px-4 font-bold">إجمالي المصروفات التشغيلية</td>
                 <td className="py-3 px-4 font-bold text-destructive">-{fmt(totalExpenses)}</td>
               </tr>
               <tr className="border-b-2 border-info bg-info/10">

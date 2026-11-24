@@ -155,7 +155,7 @@ export const generateDisclosurePDF = async (data: {
     head: [reshapeRow(['النوع', 'المبلغ (ر.س)'])],
     body: [
       ...Object.entries(data.expensesByType).map(([type, amount]) => reshapeRow([type, `-${fmt(amount)}`])),
-      reshapeRow([{ content: rs('إجمالي المصروفات'), styles: { fontStyle: 'bold' } }, { content: `-${fmt(data.totalExpenses)}`, styles: { fontStyle: 'bold' } }]),
+      reshapeRow([{ content: rs('إجمالي المصروفات التشغيلية'), styles: { fontStyle: 'bold' } }, { content: `-${fmt(data.totalExpenses)}`, styles: { fontStyle: 'bold' } }]),
     ],
     theme: 'striped',
     ...headStyles(TABLE_HEAD_RED, fontFamily),

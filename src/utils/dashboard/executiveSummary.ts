@@ -57,7 +57,7 @@ export function buildExecutiveCards({ totals, isClosed, isAdmin, yoy }: Executiv
     },
     {
       id: 'expenses',
-      title: 'المصروفات والضريبة',
+      title: 'المصروفات التشغيلية والالتزامات الضريبية',
       link: '/dashboard/expenses',
       lead: null,
       rows: [

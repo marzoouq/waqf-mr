@@ -49,7 +49,6 @@ const DisclosureFinancialStatement = (props: Props) => (
           expensesByType={props.expensesByType}
           totalExpenses={props.totalExpenses}
           vatAmount={props.vatAmount}
-          isClosed={props.isClosed}
         />
         <DisclosureWaterfallBlock
           waqfCorpusPrevious={props.waqfCorpusPrevious}

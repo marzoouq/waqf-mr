@@ -42,7 +42,7 @@ describe('generateComprehensiveBeneficiaryPDF', () => {
       myShare: 195075, totalReceived: 150000, pendingAmount: 45075,
       incomeBySource: { 'إيجارات': 500000 },
       expensesByType: { 'صيانة': 50000 },
-      contracts: [{ contract_number: 'W-001', tenant_name: 'أحمد', rent_amount: 120000, status: 'active' }],
+      contractsSummary: { total: 1, active: 1, expired: 0, cancelled: 0, annualValue: 120000 },
       distributions: [{ date: '2024-06-01', fiscalYear: '2024-2025', amount: 150000, status: 'paid' }],
     });
     expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
@@ -61,7 +61,7 @@ describe('generateComprehensiveBeneficiaryPDF', () => {
       availableAmount: 0,
       myShare: 0, totalReceived: 0, pendingAmount: 0,
       incomeBySource: {}, expensesByType: {},
-      contracts: [], distributions: [],
+      contractsSummary: { total: 0, active: 0, expired: 0, cancelled: 0, annualValue: 0 }, distributions: [],
     });
     expect(vi.mocked((await import('../core/core')).finalizePdf)).toHaveBeenCalled();
     expect(vi.mocked((await import('../core/core')).finalizePdf).mock.calls[0]?.[2]).toBe('تقرير-شامل-علي-2024-2025.pdf');
