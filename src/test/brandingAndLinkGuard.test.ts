@@ -17,7 +17,7 @@ describe('الشعار للزوار وطلب ربط الحساب', () => {
 
   it('توجد نسخة محلية من الشعار وتستعملها صفحتا الهبوط والدخول عند الفشل', () => {
     expect(existsSync('public/logo.png')).toBe(true);
-    for (const f of ['src/components/auth/AuthBranding.tsx', 'src/components/landing/LandingHero.tsx']) {
+    for (const f of ['src/components/branding/WaqfEmblem.tsx', 'src/components/landing/LandingHero.tsx']) {
       expect(readFileSync(f, 'utf8')).toContain('onError={handleLogoError}');
     }
   });

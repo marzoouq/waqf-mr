@@ -1,5 +1,8 @@
 import { Link } from "react-router-dom";
-import { Building2, Home, Search } from "lucide-react";
+import { Home, Search } from "lucide-react";
+import { WaqfEmblem } from '@/components/branding/WaqfEmblem';
+
+const WAQF_NAME = 'وقف مرزوق بن علي الثبيتي';
 import { Button } from "@/components/ui/button";
 import { RouteHead } from "@/components/seo/RouteHead";
 
@@ -16,10 +19,8 @@ const NotFound = () => {
       <div className="gradient-primary py-10">
         <div className="container mx-auto px-4 text-center">
           <Link to="/" className="inline-flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 gradient-gold rounded-xl flex items-center justify-center shadow-gold">
-              <Building2 className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-display text-lg font-bold text-primary-foreground">نظام إدارة الوقف</span>
+            <WaqfEmblem size="sm" />
+            <span className="font-display text-lg font-bold text-primary-foreground">{WAQF_NAME}</span>
           </Link>
         </div>
       </div>
@@ -52,7 +53,7 @@ const NotFound = () => {
       {/* Footer */}
       <footer className="py-4 text-center border-t">
         <p className="text-xs text-muted-foreground">
-          نظام إدارة الوقف © {new Date().getFullYear()}
+          {WAQF_NAME} © {new Date().getFullYear()}
         </p>
       </footer>
     </main>

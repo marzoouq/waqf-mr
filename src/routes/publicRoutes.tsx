@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { withRouteErrorBoundary as eb } from "./withRouteErrorBoundary";
 import AuthSkeleton from "@/components/auth/AuthSkeleton";
@@ -20,6 +20,9 @@ const VerifyDocument = lazyWithRetry(() => import("@/pages/VerifyDocument"));
 export const publicRoutes = (
   <>
     <Route path="/" element={eb(<Index />)} />
+    {/* مسارات البداية الافتراضية للمعاينة تتحول للرئيسية بدل صفحة 404 */}
+    <Route path="/index" element={<Navigate to="/" replace />} />
+    <Route path="/index.html" element={<Navigate to="/" replace />} />
     <Route path="/auth" element={eb(<Suspense fallback={<AuthSkeleton />}><Auth /></Suspense>)} />
     <Route path="/unauthorized" element={eb(<Unauthorized />)} />
     <Route path="/privacy" element={eb(<PrivacyPolicy />)} />

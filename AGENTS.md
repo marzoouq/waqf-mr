@@ -68,3 +68,4 @@
 - Official PDF dates inside table cells are numbers only (`gregorian / hijri`) with the calendar named in the label; approval stamp via `drawApprovalStamp`. Why: mixed Arabic/number cells render reversed in jsPDF.
 - PDF export adapters pass the selected fiscal scope and the screen's prepared values; property operating figures are not recomputed in PDF and historical unit occupancy remains distinct from current contract expiry. Why: nominal annual rent, allocated yearly revenue and historical occupancy are different measures.
 - Startup branding: use `public/logo.png` for the splash and derive both PWA icons from it with mask-safe margins. Why: loading and installed-app branding must match the official logo without cropping.
+- Brand mark: system pages and logo fallbacks render `WaqfEmblem` (official `/logo.png`), never a generic icon; `/index` redirects to `/`; guarded by `src/test/legacyBrandingGuard.test.ts`. Why: no screen may show the old identity.

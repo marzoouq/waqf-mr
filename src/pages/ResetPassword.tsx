@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, KeyRound, Loader2, CheckCircle } from 'lucide-react';
+import { KeyRound, Loader2, CheckCircle } from 'lucide-react';
 import { useResetPassword } from '@/hooks/auth/flows/useResetPassword';
 import { RouteHead } from '@/components/seo/RouteHead';
+import { WaqfEmblem } from '@/components/branding/WaqfEmblem';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -31,9 +32,7 @@ const ResetPassword = () => {
         {headTags}
         <Card className="w-full max-w-md shadow-elegant border-border/50 backdrop-blur-xs bg-card/95">
           <CardHeader className="text-center space-y-4">
-            <div className="mx-auto w-16 h-16 gradient-gold rounded-2xl flex items-center justify-center shadow-gold">
-              <Building2 className="w-8 h-8 text-primary-foreground" />
-            </div>
+            <WaqfEmblem size="md" className="mx-auto" />
             <CardTitle className="text-xl font-display">رابط غير صالح</CardTitle>
             <CardDescription>
               هذا الرابط غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد من صفحة تسجيل الدخول.

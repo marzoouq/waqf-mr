@@ -3,8 +3,9 @@
  */
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Building2, PanelRightOpen, PanelRightClose, X } from 'lucide-react';
+import { PanelRightOpen, PanelRightClose, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { OFFICIAL_LOGO_SRC } from '@/components/branding/WaqfEmblem';
 
 interface SidebarBrandProps {
   waqfName: string;
@@ -30,16 +31,12 @@ export const SidebarBrand: React.FC<SidebarBrandProps> = ({
   <div className="flex items-center justify-between px-4 py-5 border-b border-sidebar-border">
     <div className={cn('flex items-center gap-3', !sidebarOpen && 'lg:justify-center')}>
       <div className="w-11 h-11 bg-card rounded-xl flex items-center justify-center shrink-0 ring-1 ring-sidebar-primary/40 overflow-hidden">
-        {showLogo ? (
-          <img
-            src={waqfLogoUrl!}
-            alt="شعار الوقف"
-            className="w-full h-full object-contain rounded-xl p-0.5"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <Building2 className="w-5 h-5 text-primary" aria-hidden="true" />
-        )}
+        <img
+          src={showLogo ? waqfLogoUrl! : OFFICIAL_LOGO_SRC}
+          alt="شعار الوقف"
+          className="w-full h-full object-contain rounded-xl p-0.5"
+          onError={() => setImgError(true)}
+        />
       </div>
       <div className={cn('min-w-0 leading-tight', !sidebarOpen && 'lg:hidden')}>
         <span className="block font-display font-bold text-base text-sidebar-foreground truncate max-w-[150px]">{waqfName}</span>
