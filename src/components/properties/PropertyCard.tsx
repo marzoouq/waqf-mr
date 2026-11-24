@@ -42,10 +42,11 @@ const PropertyCard = ({ property, financials, hasActiveContracts, onSelect, onEd
   } = financials;
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow cursor-pointer" onClick={() => onSelect(property)}>
-      <CardHeader className="pb-2">
+    <Card className="overflow-hidden border-primary/15 shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer" onClick={() => onSelect(property)}>
+      <CardHeader className="pb-2 bg-gradient-to-l from-primary/5 to-transparent border-b border-primary/10">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Building2 className="w-4 h-4" /></span>
             <CardTitle className="text-lg">{property.property_number}</CardTitle>
             {property.vat_exempt && (
               <span className="text-[11px] bg-success/10 text-success px-1.5 py-0.5 rounded font-medium">معفى VAT</span>
@@ -57,7 +58,7 @@ const PropertyCard = ({ property, financials, hasActiveContracts, onSelect, onEd
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 pt-3">
         <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" />{property.property_type}</span>
           <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{property.location}</span>
@@ -122,13 +123,20 @@ const PropertyCard = ({ property, financials, hasActiveContracts, onSelect, onEd
           )}
         </div>
 
-        <div className="border-t pt-3 space-y-1 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">الإيرادات التعاقدية:</span><span className="font-semibold">{fmt(contractualRevenue)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">الإيراد التعاقدي المخصص:</span><span className="font-medium text-success">{fmt(activeAnnualRent)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">الاستحقاق الشهري:</span><span className="font-medium">{fmtInt(monthlyRent)} ريال</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">المصروفات:</span><span className="font-medium">{fmt(totalExpenses)} ريال</span></div>
-          <div className="flex justify-between border-t pt-1 mt-1">
-            <span className="text-muted-foreground">صافي مستحق تقديري:</span>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          {([
+            ['الإيرادات التعاقدية', `${fmt(contractualRevenue)} ريال`, 'font-semibold'],
+            ['الإيراد التعاقدي المخصص', `${fmt(activeAnnualRent)} ريال`, 'font-medium text-success'],
+            ['الاستحقاق الشهري', `${fmtInt(monthlyRent)} ريال`, 'font-medium'],
+            ['المصروفات', `${fmt(totalExpenses)} ريال`, 'font-medium'],
+          ] as const).map(([label, value, cls]) => (
+            <div key={label} className="rounded-lg bg-muted/40 px-2.5 py-2">
+              <div className="text-[11px] text-muted-foreground">{label}</div>
+              <div className={cls}>{value}</div>
+            </div>
+          ))}
+          <div className="col-span-2 flex items-center justify-between rounded-lg border border-primary/15 bg-primary/5 px-2.5 py-2">
+            <span className="text-muted-foreground">صافي مستحق تقديري</span>
             <span className={`font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}>{fmt(netIncome)} ريال</span>
           </div>
         </div>
