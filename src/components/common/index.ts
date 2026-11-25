@@ -66,3 +66,4 @@ export { default as PageLoader } from './feedback/PageLoader';
 
 // tables (extra)
 export { default as VirtualTable } from './tables/VirtualTable';
+export { default as YearScopeToggle } from './YearScopeToggle';

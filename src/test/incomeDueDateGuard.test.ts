@@ -13,8 +13,13 @@ function latestDefinition(): string {
   let def = '';
   for (const f of files) {
     const sql = readFileSync(join(dir, f), 'utf8');
-    const idx = sql.lastIndexOf('FUNCTION public.pay_invoice_and_record_collection');
-    if (idx >= 0) def = sql.slice(idx);
+    // الدالة قد تُغلَّف وتُعاد تسمية جسمها؛ نتتبع آخر تعريف يُدرج الدخل فعلاً
+    for (const m of sql.matchAll(/FUNCTION public\.pay_invoice_(?:remaining_)?and_record_collection\(/g)) {
+      const body = sql.slice(m.index ?? 0);
+      const end = body.indexOf('$$;');
+      const chunk = end > 0 ? body.slice(0, end) : body;
+      if (/INSERT INTO (public\.)?income/.test(chunk)) def = chunk;
+    }
   }
   return def;
 }
@@ -25,8 +30,7 @@ describe('pay_invoice_and_record_collection income date', () => {
     expect(def).not.toBe('');
   });
   it('records income on the invoice due date', () => {
-    const insert = def.slice(def.indexOf('INSERT INTO income'));
-    expect(insert).toMatch(/v_invoice\.due_date/);
-    expect(insert.slice(0, 400)).not.toMatch(/CURRENT_DATE/);
+    expect(def).toMatch(/v_invoice\.due_date/);
+    expect(def).not.toMatch(/\bCURRENT_DATE\b/);
   });
 });

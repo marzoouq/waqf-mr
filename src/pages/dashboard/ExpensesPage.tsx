@@ -1,4 +1,4 @@
-import { ErrorState } from '@/components/common/feedback/PageStateGuards';
+import { ErrorState } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { TableSkeleton, TablePagination, ExportMenu, LockedYearBanner, ConfirmDeleteDialog, ViewModeToggle, useViewMode } from '@/components/common';

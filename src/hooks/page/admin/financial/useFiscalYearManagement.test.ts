@@ -73,7 +73,7 @@ describe('useFiscalYearManagement', () => {
     const h = await loadHook();
     const { result } = renderHook(() => h(), { wrapper });
     await act(async () => { await result.current.handleClose({ status: 'active' } as never); });
-    expect(notifyWarning).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/dashboard/accounts');
   });
 
   it('handleClose لا يفعل شيئاً للسنة المقفلة', async () => {

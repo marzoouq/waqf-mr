@@ -13,8 +13,9 @@ describe('السنة المقفلة مجمّدة والتصحيحات للسنو
     expect(getEffectiveContractStatus('cancelled', '2026-01-01', '2026-11-23')).toBe('cancelled');
   });
 
-  it('التقرير الشامل لا يضيف أسطراً للسنة المقفلة', () => {
-    expect(buildCarryForwardRows({ ...base, isFiscalYearActive: false })).toEqual([]);
+  it('التقرير الشامل للسنة المقفلة يطبع الإجمالي المُصدَر كما هو دون إعادة حساب', () => {
+    const rows = buildCarryForwardRows({ ...base, isFiscalYearActive: false, grandTotal: 1864813.2 });
+    expect(rows[1]?.[1]).toContain('1,864,813.2');
   });
 
   it('التقرير الشامل يضيف المرحّل والإجمالي الشامل للسنة المفتوحة', () => {

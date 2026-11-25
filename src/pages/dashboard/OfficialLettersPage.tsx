@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useOfficialLettersPage } from '@/hooks/page/admin/management/useOfficialLettersPage';
-import YearScopeToggle from '@/components/common/YearScopeToggle';
+import { YearScopeToggle } from '@/components/common';
 import { LETTER_TYPE_LABELS } from '@/utils/pdf/entities/officialLetterPdf';
 
 const OfficialLettersPage = () => {

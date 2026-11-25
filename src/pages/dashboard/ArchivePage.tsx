@@ -13,7 +13,7 @@ import ArchiveUploadDialog from '@/components/archive/ArchiveUploadDialog';
 import ArchiveEditDialog from '@/components/archive/ArchiveEditDialog';
 import ArchiveDeleteDialog from '@/components/archive/ArchiveDeleteDialog';
 import ArchivePdfPreviewDialog from '@/components/archive/ArchivePdfPreviewDialog';
-import YearScopeToggle from '@/components/common/YearScopeToggle';
+import { YearScopeToggle } from '@/components/common';
 import { useArchivePage } from '@/hooks/page/admin/management/useArchivePage';
 
 const ArchivePage = () => {

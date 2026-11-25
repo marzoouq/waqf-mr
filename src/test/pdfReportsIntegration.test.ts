@@ -47,6 +47,14 @@ vi.mock('@/utils/pdf/core/core', async (importOriginal) => {
   };
 });
 
+vi.mock('@/contexts/FiscalYearContext', () => ({
+  useFiscalYear: () => ({ fiscalYearId: 'fy-test' }),
+}));
+
+vi.mock('@/lib/services/fiscalClosureService', () => ({
+  fetchClosureDisclosure: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));

@@ -4,7 +4,7 @@
  * - lazy() مجمّعة في كتلة واحدة بعدها
  * - منطق التصدير مفصول في useReportsExport (موجة 17)
  */
-import { ErrorState } from '@/components/common/feedback/PageStateGuards';
+import { ErrorState } from '@/components/common';
 import { ViewportRender } from '@/components/common';
 import { lazy, Suspense } from 'react';
 

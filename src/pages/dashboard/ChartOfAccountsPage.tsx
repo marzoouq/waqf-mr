@@ -1,7 +1,7 @@
 /**
  * صفحة الشجرة المحاسبية — عرض هرمي + CRUD كامل
  */
-import { ErrorState } from '@/components/common/feedback/PageStateGuards';
+import { ErrorState } from '@/components/common';
 import { DashboardLayout, PageHeaderCard } from '@/components/layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

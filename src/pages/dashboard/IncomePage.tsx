@@ -1,4 +1,4 @@
-import { ErrorState } from '@/components/common/feedback/PageStateGuards';
+import { ErrorState } from '@/components/common';
 import { fmt } from '@/utils/format/format';
 import { lazy, Suspense } from 'react';
 

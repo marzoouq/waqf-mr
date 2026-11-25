@@ -1,27 +1,18 @@
 # Conventions Deep Report
 
-Total violations: **19** (Critical: 7, Warning: 8, Info: 4)
+Total violations: **12** (Critical: 0, Warning: 8, Info: 4)
 
 ## By rule
 
 | Rule | Count |
 |---|---:|
-| CommonBarrelOnly | 7 |
 | NoToastInDataHooks | 6 |
 | HexColors | 4 |
 | HooksLayering | 2 |
 
 ## Critical violations
 
-| File:Line | Rule | Message |
-|---|---|---|
-| pages/dashboard/ArchivePage.tsx:16 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/BeneficiariesPage.tsx:1 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/ChartOfAccountsPage.tsx:4 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/ExpensesPage.tsx:1 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/IncomePage.tsx:1 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/OfficialLettersPage.tsx:15 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
-| pages/dashboard/ReportsPage.tsx:7 | CommonBarrelOnly | import مسار فرعي من components/common — استخدم البارّل @/components/common فقط |
+_None._
 
 ## Warnings (top 30)
 

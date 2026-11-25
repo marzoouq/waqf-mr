@@ -42,7 +42,7 @@ describe('ticket governance', () => {
     expect(fn).toMatch(/check_rate_limit/);
   });
   it('ticket events log is append-only with RLS', () => {
-    expect(allSql).toMatch(/CREATE TABLE public\.support_ticket_events/);
+    expect(allSql).toMatch(/CREATE TABLE (IF NOT EXISTS )?public\.support_ticket_events/);
     expect(allSql).toMatch(/ALTER TABLE public\.support_ticket_events ENABLE ROW LEVEL SECURITY/);
     expect(allSql).not.toMatch(/GRANT[^;]*(UPDATE|DELETE)[^;]*support_ticket_events TO authenticated/);
   });
