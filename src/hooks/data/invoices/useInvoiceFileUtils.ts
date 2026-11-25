@@ -103,7 +103,8 @@ export const getInvoiceSignedUrl = async (filePath: string, downloadAs?: string)
     throw new Error('مسار الملف غير صالح');
   }
 
-  const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>(
+  // الخادم يبث الملف نفسه (لا رابط قابل لإعادة الاستخدام)، فنحوّله لرابط محلي في المتصفح
+  const { data, error } = await supabase.functions.invoke<Blob | { url?: string; error?: string }>(
     'invoice-file-url',
     { body: { file_path: filePath, ...(downloadAs ? { download: downloadAs } : {}) } },
   );
@@ -116,7 +117,7 @@ export const getInvoiceSignedUrl = async (filePath: string, downloadAs?: string)
     throw new Error('فشل في إنشاء رابط التحميل');
   }
 
-  if (!data?.url) throw new Error(data?.error || 'فشل في إنشاء رابط التحميل');
-
-  return data.url;
+  if (data instanceof Blob) return URL.createObjectURL(data);
+  if (data && 'url' in data && data.url) return data.url;
+  throw new Error((data && 'error' in data && data.error) || 'فشل في إنشاء رابط التحميل');
 };

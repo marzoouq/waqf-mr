@@ -183,6 +183,18 @@ Deno.serve(async (req) => {
       );
     }
 
+    // تسجيل البحث الناجح قبل التأخير الثابت — كي لا يطول مسار «موجود» عن «غير موجود»
+    if (email) {
+      try {
+        await supabase.rpc('log_access_event', {
+          p_event_type: 'national_id_lookup',
+          p_metadata: { ip: clientIp, found: true },
+        });
+      } catch {
+        // لا نفشل الطلب بسبب التسجيل
+      }
+    }
+
     // Ensure consistent response time regardless of result
     const elapsed = Date.now() - startTime;
     // Progressive delay: base 300ms + 200ms per attempt used
@@ -212,16 +224,6 @@ Deno.serve(async (req) => {
         JSON.stringify({ found: true, masked_email: "***@***.com", remaining }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    }
-
-    // تسجيل البحث الناجح في سجل الوصول
-    try {
-      await supabase.rpc('log_access_event', {
-        p_event_type: 'national_id_lookup',
-        p_metadata: { ip: clientIp, found: true },
-      });
-    } catch {
-      // لا نفشل الطلب بسبب التسجيل
     }
 
     // If password provided, perform server-side authentication

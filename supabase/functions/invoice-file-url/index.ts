@@ -6,7 +6,7 @@
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { authenticate } from "../_shared/auth.ts";
 import { extractClientIp } from "../_shared/client-ip.ts";
-import { BodySchema, SIGNED_URL_TTL } from "./validation.ts";
+import { BodySchema } from "./validation.ts";
 
 type Row = { id: string; fiscal_year_id: string | null; invoice_number: string | null };
 
@@ -133,18 +133,24 @@ Deno.serve(async (req): Promise<Response> => {
       }
     }
 
-    // 7) رابط موقّع قصير العمر
-    const { data: signed, error: signErr } = await admin.storage
-      .from("invoices")
-      .createSignedUrl(file_path, SIGNED_URL_TTL, download ? { download } : undefined);
-
-    if (signErr || !signed?.signedUrl) {
-      await logAttempt(false, "sign_failed", row, source);
-      return json({ error: "فشل في إنشاء رابط التحميل" }, 500);
+    // 7) بث الملف مباشرة من الخادم — لا يُسلَّم أي رابط قابل لإعادة الاستخدام بعد سحب الإذن
+    const { data: blob, error: dlErr } = await admin.storage.from("invoices").download(file_path);
+    if (dlErr || !blob) {
+      await logAttempt(false, "download_failed", row, source);
+      return json({ error: "فشل في تحميل الملف" }, 500);
     }
 
     await logAttempt(true, "granted", row, source);
-    return json({ url: signed.signedUrl, expires_in: SIGNED_URL_TTL }, 200);
+    const safeName = (download ?? file_path).replace(/["\r\n]/g, "");
+    return new Response(blob, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": blob.type || "application/octet-stream",
+        "Cache-Control": "no-store",
+        "Content-Disposition": `${download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(safeName)}`,
+      },
+    });
   } catch (e) {
     console.error("invoice-file-url failed", e instanceof Error ? e.message : e);
     return json({ error: "خطأ غير متوقع في الخادم" }, 500);
