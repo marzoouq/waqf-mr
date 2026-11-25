@@ -13,6 +13,7 @@ const BRANDED = [
   'pages/ResetPassword.tsx',
   'components/auth/AuthBranding.tsx',
   'components/layout/sidebar/SidebarBrand.tsx',
+  'components/layout/WaqfInfoBar.tsx',
 ];
 
 describe('legacy branding guard', () => {

@@ -2,19 +2,22 @@
  * معلومات الوقف — زر (شعار الوقف أو أيقونة) يفتح بطاقة بيانات الصك والنظارة
  * - trigger="logo": شعار الوقف داخل الهيدر الموحّد على الجوال
  * - trigger="icon": زر معلومات صغير في الشريط العلوي على الكمبيوتر
+ * كل فرع يغلف زرّه بـ <PopoverTrigger asChild> مباشرة حتى يبقى
+ * المعالج مشتقًا من Radix بلا وساطة شرط شرطي بين الغلاف والزّر.
  */
 import { useState } from 'react';
 import { useWaqfInfo } from '@/hooks/data/settings/app/useAppSettings';
 import { useAuth } from '@/hooks/auth/session/useAuthContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Building2, ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';
+import { ScrollText, User, Landmark, Info, Pencil } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/cn';
+import { WaqfEmblem } from '@/components/branding/WaqfEmblem';
 import WaqfInfoEditDialog from '@/components/waqf-info/WaqfInfoEditDialog';
 
 const FIELDS = [
-  { key: 'waqf_name', label: 'اسم الوقف', icon: Building2 },
+  { key: 'waqf_name', label: 'اسم الوقف', icon: ScrollText },
   { key: 'waqf_founder', label: 'الواقف', icon: User },
   { key: 'waqf_admin', label: 'الناظر', icon: User },
   { key: 'waqf_deed_number', label: 'رقم صك الوقف', icon: ScrollText },
@@ -52,25 +55,32 @@ const WaqfInfoBar = ({ trigger = 'logo' }: WaqfInfoBarProps) => {
   return (
     <>
       <Popover>
-        <PopoverTrigger asChild>
-          {trigger === 'icon' ? (
+        {trigger === 'icon' ? (
+          <PopoverTrigger asChild>
             <Button variant="outline" size="icon" aria-label="معلومات الوقف" className="waqf-info-bar h-10 w-10 rounded-xl">
               <Info className="w-4 h-4" aria-hidden="true" />
             </Button>
-          ) : (
+          </PopoverTrigger>
+        ) : (
+          <PopoverTrigger asChild>
             <button
               type="button"
               aria-label="معلومات الوقف"
               className="waqf-info-bar w-9 h-9 rounded-xl bg-card flex items-center justify-center shrink-0 overflow-hidden ring-1 ring-sidebar-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-primary"
             >
               {waqfInfo.waqf_logo_url && !logoError ? (
-                <img src={waqfInfo.waqf_logo_url} alt="شعار الوقف" className="w-full h-full object-contain p-0.5" onError={() => setLogoError(true)} />
+                <img
+                  src={waqfInfo.waqf_logo_url}
+                  alt="شعار الوقف"
+                  className="w-full h-full object-contain p-0.5"
+                  onError={() => setLogoError(true)}
+                />
               ) : (
-                <Building2 className="w-4 h-4 text-primary" aria-hidden="true" />
+                <WaqfEmblem size="sm" className="w-full h-full" />
               )}
             </button>
-          )}
-        </PopoverTrigger>
+          </PopoverTrigger>
+        )}
         <PopoverContent className="w-80 md:w-96 max-w-[calc(100vw-2rem)] p-0 overflow-hidden" align="center" sideOffset={8}>
           <div className="gradient-hero p-3 flex items-center justify-center gap-2">
             <h3 className="font-display font-bold text-sidebar-foreground text-lg">{waqfInfo.waqf_name}</h3>

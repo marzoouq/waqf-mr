@@ -1,38 +1,20 @@
 /**
  * تغطية aria-label و handlers — فحص ثابت لكل ملفات pages/components الحرجة.
  * يفشل إن وُجد زر size="icon" بدون aria-label أو زر بدون onClick/submit/asChild في تلك المسارات.
+ * المعيار مشترك مع لوحة التشخيص عبر src/lib/diagnostics/buttonScan.ts — لا نسخة ثانية هنا.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { sync as glob } from 'fast-glob';
+import { findHandlerLessButtons, findIconButtonsMissingAria } from '@/lib/diagnostics/buttonScan';
 
 const ROOTS = ['src/pages', 'src/components/diagnostics', 'src/components/layout'];
-
-function extractButtonTags(source: string) {
-  const out: Array<{ tag: string; start: number }> = [];
-  const re = /<Button\b/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source)) !== null) {
-    const start = m.index;
-    let i = start + m[0].length;
-    let depth = 0;
-    let q: string | null = null;
-    while (i < source.length) {
-      const ch = source[i];
-      if (q) { if (ch === '\\') { i += 2; continue; } if (ch === q) q = null; }
-      else if (depth > 0) { if (ch === '{') depth++; else if (ch === '}') depth--; else if (ch === '"' || ch === "'" || ch === '`') q = ch; }
-      else { if (ch === '{') depth++; else if (ch === '"' || ch === "'" || ch === '`') q = ch; else if (ch === '>') { out.push({ tag: source.slice(start, i + 1), start }); break; } }
-      i++;
-    }
-  }
-  return out;
-}
 
 function loadFiles(): { file: string; src: string }[] {
   const root = process.cwd();
   const files = ROOTS.flatMap((r) =>
-    glob(`${r}/**/*.tsx`, { cwd: root, ignore: ['**/*.test.tsx'], absolute: true }),
+    glob(`${r}/**/*.tsx`, { cwd: root, ignore: ['**/*.test.tsx', '**/*.spec.tsx'], absolute: true }),
   );
   return files.map((f) => ({ file: relative(root, f), src: readFileSync(f, 'utf8') }));
 }
@@ -43,13 +25,7 @@ describe('aria-label coverage in pages, diagnostics, layout', () => {
   it('every icon-only Button has aria-label (or parent Link with aria-label)', () => {
     const offenders: string[] = [];
     for (const { file, src } of files) {
-      for (const { tag, start } of extractButtonTags(src)) {
-        if (!/size=["'`]icon["'`]/.test(tag)) continue;
-        if (/aria-label\s*=/.test(tag)) continue;
-        const ctx = src.slice(Math.max(0, start - 300), start);
-        if (/<Link\b[^>]*aria-label\s*=[^>]*>\s*$/.test(ctx)) continue;
-        offenders.push(`${file} :: ${tag.slice(0, 120)}`);
-      }
+      for (const tag of findIconButtonsMissingAria(src)) offenders.push(`${file} :: ${tag.slice(0, 120)}`);
     }
     expect(offenders, `أزرار أيقونة بدون aria-label:\n${offenders.join('\n')}`).toHaveLength(0);
   });
@@ -57,18 +33,7 @@ describe('aria-label coverage in pages, diagnostics, layout', () => {
   it('every Button has a handler (onClick/submit/asChild/disabled/wrapping Link or Trigger)', () => {
     const offenders: string[] = [];
     for (const { file, src } of files) {
-      for (const { tag, start } of extractButtonTags(src)) {
-        if (/onClick\s*=/.test(tag)) continue;
-        if (/type\s*=\s*["'`]submit["'`]/.test(tag)) continue;
-        if (/\basChild\b/.test(tag)) continue;
-        if (/\bdisabled\b/.test(tag)) continue;
-        const ctx = src.slice(Math.max(0, start - 300), start);
-        if (/<Link\b[^>]*>\s*$/.test(ctx)) continue;
-        if (/asChild\b[^<]*>\s*$/.test(ctx)) continue;
-        // مُشغّل asChild يختار بين زرين بشرط: <Trigger asChild>{cond ? (<Button…
-        if (/asChild\b[^<]*>\s*\{[^<]*\?\s*\(\s*$/.test(ctx)) continue;
-        offenders.push(`${file} :: ${tag.slice(0, 120)}`);
-      }
+      for (const tag of findHandlerLessButtons(src)) offenders.push(`${file} :: ${tag.slice(0, 120)}`);
     }
     expect(offenders, `أزرار بدون معالج:\n${offenders.join('\n')}`).toHaveLength(0);
   });

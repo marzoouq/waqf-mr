@@ -1,8 +1,10 @@
 /**
  * فحوصات التفاعلات — تبويبات وأزرار في كل الصفحات.
  * يستخدم import.meta.glob بـ as: 'raw' لقراءة مصدر الملفات دون تحميلها.
+ * معيار الأزرار مشترك مع حارس الاختبارات عبر ../buttonScan.
  */
 import type { CheckResult } from '../types';
+import { findHandlerLessButtons, findIconButtonsMissingAria } from '../buttonScan';
 
 const RAW_PAGES = import.meta.glob([
   '/src/pages/**/*.tsx',
@@ -43,52 +45,6 @@ export interface InteractionsAuditRow {
 
 let cachedRows: InteractionsAuditRow[] | null = null;
 
-/**
- * يستخرج وسوم Button الكاملة مع احترام `{...}` و `"..."` و `'...'` و backticks
- * بحيث لا يقطع الـ regex عند `=>` داخل onClick.
- * يُعيد كل وسم مع موضع البداية في المصدر (لفحص السياق المحيط لاحقاً).
- */
-function extractButtonTags(source: string): Array<{ tag: string; start: number }> {
-  const out: Array<{ tag: string; start: number }> = [];
-  const re = /<Button\b/g;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(source)) !== null) {
-    const start = m.index;
-    let i = m.index + m[0].length;
-    let braceDepth = 0;
-    let quote: string | null = null;
-    while (i < source.length) {
-      const ch = source[i];
-      if (quote) {
-        if (ch === '\\') { i += 2; continue; }
-        if (ch === quote) quote = null;
-      } else if (braceDepth > 0) {
-        if (ch === '{') braceDepth++;
-        else if (ch === '}') braceDepth--;
-        else if (ch === '"' || ch === "'" || ch === '`') quote = ch;
-      } else {
-        if (ch === '{') braceDepth++;
-        else if (ch === '"' || ch === "'" || ch === '`') quote = ch;
-        else if (ch === '>') { out.push({ tag: source.slice(start, i + 1), start }); break; }
-      }
-      i++;
-    }
-  }
-  return out;
-}
-
-/**
- * يفحص ما إذا كان الزر داخل وسم أب يجعله مُعالَجاً (Link أو *Trigger asChild).
- * ينظر إلى ~200 محرف قبل الزر — كافٍ لـ JSX المعتاد.
- */
-function hasHandledParent(source: string, start: number): boolean {
-  const ctx = source.slice(Math.max(0, start - 300), start);
-  // أقرب وسم مفتوح غير مغلق قبل الزر
-  if (/<Link\b[^>]*>\s*$/.test(ctx)) return true;
-  if (/asChild\b[^<]*>\s*$/.test(ctx)) return true;
-  return false;
-}
-
 export async function getInteractionsRows(force = false): Promise<InteractionsAuditRow[]> {
   if (cachedRows && !force) return cachedRows;
   const sources = await loadAllSources();
@@ -106,30 +62,12 @@ export async function getInteractionsRows(force = false): Promise<InteractionsAu
       if (dups.size) rows.push({ file: short, type: 'duplicate_tab_id', severity: 'fail', detail: `قيم مكررة: ${[...dups].join('، ')}` });
     }
 
-    const tags = extractButtonTags(source);
-
     // 2) handler-less buttons
-    let handlerLess = 0;
-    for (const { tag, start } of tags) {
-      if (/onClick\s*=/.test(tag)) continue;
-      if (/type\s*=\s*["'`]submit["'`]/.test(tag)) continue;
-      if (/\basChild\b/.test(tag)) continue;
-      if (/\bdisabled\b/.test(tag)) continue;
-      if (hasHandledParent(source, start)) continue;
-      handlerLess++;
-    }
+    const handlerLess = findHandlerLessButtons(source).length;
     if (handlerLess > 0) rows.push({ file: short, type: 'handler_less_button', severity: 'warn', detail: `${handlerLess} زر بدون onClick/submit/asChild` });
 
     // 3) icon-only buttons missing aria-label (parent Link/Label with aria-label counts as labelled)
-    let missingAria = 0;
-    for (const { tag, start } of tags) {
-      if (!/size=["'`]icon["'`]/.test(tag)) continue;
-      if (/aria-label\s*=/.test(tag)) continue;
-      // اقبل aria-label على Link أب مباشر
-      const ctx = source.slice(Math.max(0, start - 300), start);
-      if (/<Link\b[^>]*aria-label\s*=[^>]*>\s*$/.test(ctx)) continue;
-      missingAria++;
-    }
+    const missingAria = findIconButtonsMissingAria(source).length;
     if (missingAria > 0) rows.push({ file: short, type: 'missing_aria', severity: 'warn', detail: `${missingAria} زر أيقونة بدون aria-label` });
   }
   cachedRows = rows;
