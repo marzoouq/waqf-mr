@@ -27,6 +27,7 @@ vi.mock('@/components/common', () => ({
   ErrorState: ({ message }: { message?: string }) => <div>خطأ: {message ?? 'عام'}</div>,
 }));
 vi.mock('@/components/beneficiary/UnlinkedAccountNotice', () => ({ default: () => <div>حساب غير مرتبط</div> }));
+vi.mock('@/components/bank/WaqfBankAccountSection', () => ({ default: () => null }));
 vi.mock('@/components/accounts', () => ({ AccountsSummaryCards: () => <div>محتوى سليم</div>, AccountsViewMyShare: Null }));
 vi.mock('@/components/beneficiary/disclosure/DisclosureSummaryCards', () => ({ default: () => <div>محتوى سليم</div> }));
 vi.mock('@/components/beneficiary/disclosure/DisclosureContractsSection', () => ({ default: Null }));

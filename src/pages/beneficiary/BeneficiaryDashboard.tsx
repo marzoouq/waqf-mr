@@ -13,6 +13,7 @@ import BeneficiaryQuickLinks from '@/components/beneficiary/dashboard/Beneficiar
 import BeneficiaryRecentDistributions from '@/components/beneficiary/dashboard/BeneficiaryRecentDistributions';
 import BeneficiaryNotificationsCard from '@/components/beneficiary/dashboard/BeneficiaryNotificationsCard';
 import BeneficiaryAdvanceCard from '@/components/beneficiary/dashboard/BeneficiaryAdvanceCard';
+import WaqfBankAccountSection from '@/components/bank/WaqfBankAccountSection';
 import { useBeneficiaryDashboardPage } from '@/hooks/page/beneficiary';
 
 const BeneficiaryDashboard = () => {
@@ -60,6 +61,8 @@ const BeneficiaryDashboard = () => {
             </CardContent>
           </Card>
           <NoPublishedYearsNotice />
+          {/* الحساب البنكي للوقف لا يرتبط بسنة منشورة؛ يظهر وفق اختيار الناظر */}
+          <WaqfBankAccountSection />
         </div>
       </DashboardLayout>
     );
@@ -91,6 +94,8 @@ const BeneficiaryDashboard = () => {
                 showShareLinks={role !== 'waqif'}
               />
             )}
+            {/* الحساب البنكي للوقف — يختفي ذاتياً ما لم يفعّل الناظر إظهاره */}
+            <DeferredRender delay={200}><WaqfBankAccountSection /></DeferredRender>
             {isVisible('recent_distributions') && (
               <DeferredRender delay={300}>
                 <BeneficiaryRecentDistributions distributions={distributions} />
