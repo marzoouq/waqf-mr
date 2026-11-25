@@ -281,6 +281,13 @@
       "when": 1795562041831,
       "tag": "0039_block_self_dealing_round3",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795589328766,
+      "tag": "0040_verify_documents_by_printed_reference",
+      "breakpoints": true
     }
   ]
 }

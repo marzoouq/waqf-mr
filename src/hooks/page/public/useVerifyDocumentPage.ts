@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { rpc } from '@/lib/api/rpc';
+import { contentKeys } from '@/lib/queryKeys/contentKeys';
 
 export interface VerifiedDocument {
   doc_number: string;
@@ -10,12 +11,13 @@ export interface VerifiedDocument {
   status: string;
 }
 
-/** التحقق العام من وثيقة رسمية عبر رمز QR — بيانات غير شخصية فقط */
+/** التحقق العام بالرقم المطبوع أو رمز QR — بيانات غير شخصية فقط */
 export function useVerifyDocumentPage() {
-  const { code = '' } = useParams<{ code: string }>();
-  const valid = /^[0-9a-f]{24}$/.test(code);
+  const { code: rawCode = '' } = useParams<{ code: string }>();
+  const code = rawCode.trim();
+  const valid = /^[0-9a-f]{24}$/.test(code) || /^[A-Za-z0-9][A-Za-z0-9/-]{1,63}$/.test(code);
   const query = useQuery({
-    queryKey: ['verify-document', code],
+    queryKey: contentKeys.documentVerification(code),
     enabled: valid,
     staleTime: 60_000,
     queryFn: async ({ signal }) => {

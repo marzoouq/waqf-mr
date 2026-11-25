@@ -12,5 +12,6 @@ export const contentKeys = {
     statusPrefix: ['annual_report_status'] as const,
   },
   publicStats: ['public-stats'] as const,
+  documentVerification: (code: string) => ['verify-document', code] as const,
   bylaws: ['waqf_bylaws'] as const,
 } as const;
